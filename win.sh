@@ -268,16 +268,15 @@ echo "Copying files"
 echo ""
 sleep 4
 
-# Copy files
-7z x "$ISO_FILE" -o"$MOUNT_DIR/WIN"
+# Mount the iso
+mkdir -p "$MOUNT_DIR/Mounted_image"
+sudo mount -o loop "$ISO_FILE" "$MOUNT_DIR/Mounted_image"
 
-if [ $? -eq 0 ]; then
-    echo "Extraction completed successfully."
-else
-    echo "Error occurred during extraction."
-    echo "Operation aborted."
-    exit 1
-fi
+# Copy all the files with rsync
+rsync -av --info=progress2 --no-i-r "$MOUNT_DIR/Mounted_image/" "$MOUNT_DIR/WIN"
+
+# Unmount the ISO
+sudo umount "$MOUNT_DIR/Mounted_image"
 
 clear
 
@@ -290,7 +289,20 @@ if grep -q "Windows11" /mnt/WIN/sources/*.json; then
 echo Win11
     wget -P /tmp 'https://github.com/daboynb/flash_windows_isos_on_linux/raw/main/files/$OEM$11.zip'
     7z x '/tmp/$OEM$11.zip' -o"$MOUNT_DIR/WIN/sources"
-    clear
+
+    while true; do
+        read -p "Insert the Windows username: " win_user
+
+        # Check the username value
+        if [[ -n "$win_user" && "$win_user" =~ ^[a-zA-Z0-9]+$ && "$win_user" != "NONE" ]]; then
+            sed -i "s/Admin/$win_user/g" "$MOUNT_DIR/WIN/sources/\$OEM\$/\$\$/Panther/unattend.xml"
+            echo "Username replaced successfully."
+            break
+        else
+            echo "Invalid username. Please make sure it contains only letters and numbers and is not 'NONE'."
+        fi
+    done
+
 fi
 
 # Check for "Windows10" 
@@ -309,17 +321,6 @@ clear
 ########################## End of iso image addons ##########################
 
 ########################## Sync and clean ##########################
-
-sleep 4
-clear
-echo ""
-echo "Syncing data... be patient"
-echo ""
-sleep 4
-
-# Sync data
-sync
-
 sleep 4
 clear
 echo ""
@@ -339,6 +340,7 @@ sleep 4
 
 # Clean
 sudo rm -rf "$MOUNT_DIR/WIN"
+sudo rm -rf "$MOUNT_DIR/Mounted_image"
 sudo rm /tmp/uefi-ntfs.img
 
 if [ -f '/tmp/$OEM$10.zip' ]  
