@@ -273,7 +273,7 @@ mkdir -p "$MOUNT_DIR/Mounted_image"
 sudo mount -o loop "$ISO_FILE" "$MOUNT_DIR/Mounted_image"
 
 # Copy all the files with rsync
-rsync -av --info=progress2 --no-i-r "$MOUNT_DIR/Mounted_image/" "$MOUNT_DIR/WIN"
+rsync -avc --progress "$MOUNT_DIR/Mounted_image/" "$MOUNT_DIR/WIN"
 
 # Unmount the ISO
 sudo umount "$MOUNT_DIR/Mounted_image"
@@ -320,7 +320,7 @@ clear
 
 ########################## End of iso image addons ##########################
 
-########################## Sync and clean ##########################
+########################## Clean ##########################
 sleep 4
 clear
 echo ""
@@ -363,4 +363,4 @@ clear
 # Done
 echo "COMPLETED! BYE"
 
-########################## End of sync and clean ##########################
+########################## End of clean ##########################
